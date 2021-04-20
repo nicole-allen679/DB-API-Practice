@@ -1,21 +1,43 @@
-var admin = require("firebase-amin")
-var serviceAccount = require("../../CredentialsContainer.json")
+var admin = require('firebase-admin')
+var serviceAccount = require('../../credentials.json')
 
-admin.initalizeApp({
-    credential: admin.credential.cert(serviceAccount)
-})
+let db;
 
-const db = admin.firestore()
+function reconnectToFirestore() {
+  if (!db) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    })
+    db = admin.firestore()
+  }
+}
 
 exports.getCars = (req, res) => {
-    res.send('got cars')
+  reconnectToFirestore()
+  
+  db.collection('cars')
+  .get()
+  .then(allData => {
+      let usedCars = []
+      allData.forEach(car => {
+      usedCars.push(car.data())
+      })
+      res.send(usedCars)
+    })
+    .catch((err) => console.log(err))
 }
+
 exports.newCars = (req, res) => {
-    res.send('created new car')
+  reconnectToFirestore()
+  const newData = req.body
+  db.collection('cars')
+    .add(newData)
+    .then(() => this.getCars(req,res))
 }
+
 exports.updateCars = (req, res) => {
-    res.send('updated car')
+  res.send('updated car')
 }
 exports.deleteCars = (req, res) => {
-    res.send('car is deleted')
+  res.send('car is deleted')
 }
