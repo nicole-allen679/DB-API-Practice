@@ -34,7 +34,19 @@ exports.newCars = (req, res) => {
     .add(newData)
     .then(() => this.getCars(req,res))
 }
-
+exports.getMultipleCars = (req, res) => {
+  reconnectToFirestore()
+  const newData = req.body
+  newData.forEach((car, index) => {
+    db.collection('cars').add(car)
+      .then(() => {
+        if(index === newData.length - 1) {
+          this.gethCars(req, res)
+        }
+      })
+      .catch(err => res.send('Error creating car: ' + err.message))
+  })
+}
 exports.updateCars = (req, res) => {
   res.send('updated car')
 }
